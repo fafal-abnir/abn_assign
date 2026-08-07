@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "abnamro-assignment"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Fraud detection experiments with ensemble and deep tabular models"
+authors = ["Vahid"]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.12,<3.14"
 xgboost = "^3.4.0"
 catboost = "^1.2.10"
 seaborn = "^0.13.2"
@@ -17,7 +17,9 @@ numba = ">=0.60"
 imbalanced-learn = "^0.14.2"
 shap = "^0.52.0"
 
-[tool.poetry.dev-dependencies]
+lightning = ">=2.5,<2.7"
+torchmetrics = ">=1.7,<2"
+tabm = "0.0.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -10,7 +10,6 @@ from fraud_detection.config import TIME_COLUMN
 
 
 def add_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Create row-level features that do not depend on future transactions."""
     result = df.copy()
     transaction_time = pd.to_datetime(result[TIME_COLUMN], errors="raise")
     date_of_birth = pd.to_datetime(result["dob"], errors="raise")
@@ -43,7 +42,6 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _haversine_distance(df: pd.DataFrame) -> pd.Series:
-    """Calculate customer-to-merchant distance in kilometres."""
     customer_latitude = np.radians(df["lat"])
     merchant_latitude = np.radians(df["merch_lat"])
     latitude_delta = merchant_latitude - customer_latitude
@@ -58,7 +56,6 @@ def _haversine_distance(df: pd.DataFrame) -> pd.Series:
 
 
 def load_data(data_dir: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Load chronological train/test files and enforce their time boundary."""
     train_path = data_dir / "fraudTrain.csv"
     test_path = data_dir / "fraudTest.csv"
     missing = [str(path) for path in (train_path, test_path) if not path.is_file()]
@@ -82,11 +79,6 @@ def _read_dataset(path: Path) -> pd.DataFrame:
 def add_historical_features(
     train_df: pd.DataFrame, test_df: pd.DataFrame
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Add causal cardholder features using only each transaction's past.
-
-    Train and test are joined only so later test transactions can use history
-    that would exist in an online system. No target values are used.
-    """
     train = train_df.assign(_dataset="train")
     test = test_df.assign(_dataset="test")
     combined = (
@@ -152,7 +144,6 @@ def _distance_between_points(
 def build_preprocessor(
     categorical_columns: Sequence[str], numeric_columns: Sequence[str]
 ) -> ColumnTransformer:
-    """Build preprocessing fitted inside CV to prevent validation leakage."""
     return ColumnTransformer(
         transformers=[
             (
