@@ -1,6 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm+iml,venv,data,jupyternotebooks,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=pycharm+iml,venv,data,jupyternotebooks,python
-
+### Experiment results
+experiments/
+artifacts/
 ### Data ###
 *.csv
 *.dat
