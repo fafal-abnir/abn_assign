@@ -191,7 +191,7 @@ ABNAmro_assignment/
 Clone the repository and enter it:
 
 ```bash
-git clone [<repository-url>](https://github.com/fafal-abnir/abn_assign)
+git clone https://github.com/fafal-abnir/abn_assign
 cd ABNAmro_assignment
 ```
 
