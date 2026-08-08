@@ -8,7 +8,7 @@ import shap
 from scipy import sparse
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
+import matplotlib.pyplot as plt
 
 
 def save_explanations(
@@ -19,12 +19,11 @@ def save_explanations(
     include_shap: bool = True,
     include_feature_importance: bool = True,
 ) -> None:
-    """Save native and SHAP importance tables and plots for a fitted pipeline."""
     preprocessor = fitted_pipeline.named_steps["preprocessor"]
     model = fitted_pipeline.named_steps["model"]
     feature_names = preprocessor.get_feature_names_out()
     if include_feature_importance:
-        native_importance = getattr(model, "feature_importances_", None)
+        native_importance = _native_feature_importance(model)
         if native_importance is None:
             raise TypeError(
                 f"{type(model).__name__} does not expose feature_importances_"
@@ -59,8 +58,25 @@ def save_explanations(
     plt.close()
 
 
+def _native_feature_importance(model: Any) -> np.ndarray | None:
+    importance = getattr(model, "feature_importances_", None)
+    if importance is not None:
+        return np.asarray(importance)
+
+    ensemble_importances = []
+    for estimator in getattr(model, "estimators_", []):
+        fitted_classifier = getattr(estimator, "named_steps", {}).get("classifier")
+        estimator_importance = getattr(
+            fitted_classifier, "feature_importances_", None
+        )
+        if estimator_importance is not None:
+            ensemble_importances.append(np.asarray(estimator_importance))
+    if ensemble_importances:
+        return np.mean(ensemble_importances, axis=0)
+    return None
+
+
 def _binary_class_values(values: np.ndarray) -> np.ndarray:
-    """Normalize SHAP's estimator-dependent binary output to rows × features."""
     if values.ndim == 3:
         return values[:, :, -1]
     if values.ndim != 2:

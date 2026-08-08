@@ -13,6 +13,7 @@ from sklearn.model_selection import RandomizedSearchCV
 
 from fraud_detection.config import (
     FEATURE_STRATEGIES,
+    INTERNAL_SAMPLING_MODELS,
     MODEL_NAMES,
     SAMPLING_STRATEGIES,
     TARGET,
@@ -48,6 +49,14 @@ class SearchConfig:
         _validate_choices(
             "sampling strategy", self.sampling_strategies, SAMPLING_STRATEGIES
         )
+        if (
+            set(self.models).issubset(INTERNAL_SAMPLING_MODELS)
+            and "none" not in self.sampling_strategies
+        ):
+            raise ValueError(
+                "EasyEnsemble and RUSBoost sample internally; include 'none' in "
+                "sampling_strategies."
+            )
         if not 0 < self.validation_fraction < 1:
             raise ValueError("validation_fraction must be between 0 and 1.")
         if self.n_iter < 1:
@@ -61,11 +70,13 @@ def search_and_evaluate(config: SearchConfig) -> dict[str, Any]:
     time_split, split_index = make_latest_holdout(
         len(train_df), config.validation_fraction
     )
-    candidate_values = list(
-        product(
+    candidate_values = [
+        candidate
+        for candidate in product(
             config.models, config.feature_strategies, config.sampling_strategies
         )
-    )
+        if candidate[0] not in INTERNAL_SAMPLING_MODELS or candidate[2] == "none"
+    ]
     print(
         f"Searching {len(candidate_values)} complete configurations; "
         f"{config.n_iter} hyperparameter combinations each.\n"

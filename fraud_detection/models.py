@@ -2,8 +2,10 @@ from typing import Any
 
 import pandas as pd
 from catboost import CatBoostClassifier
+from imblearn.ensemble import EasyEnsembleClassifier, RUSBoostClassifier
 from lightgbm import LGBMClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 
 from fraud_detection.config import MODEL_NAMES, ModelName, SamplingStrategy
@@ -77,6 +79,30 @@ def create_model(
             "model__num_leaves": [15, 31, 63],
             "model__subsample": [0.7, 0.85, 1.0],
             "model__colsample_bytree": [0.7, 0.85, 1.0],
+        }
+    if model_name == "easyensemble":
+        base_estimator = AdaBoostClassifier(random_state=random_state)
+        return EasyEnsembleClassifier(
+            estimator=base_estimator,
+            random_state=random_state,
+            n_jobs=-1,
+        ), {
+            "model__n_estimators": [5, 10, 20, 30],
+            "model__estimator__n_estimators": [25, 50, 100, 200],
+            "model__estimator__learning_rate": [0.01, 0.05, 0.1, 0.5, 1.0],
+            "model__replacement": [False, True],
+        }
+    if model_name == "rusboost":
+        base_estimator = DecisionTreeClassifier(random_state=random_state)
+        return RUSBoostClassifier(
+            estimator=base_estimator,
+            random_state=random_state,
+        ), {
+            "model__n_estimators": [50, 100, 200, 400],
+            "model__learning_rate": [0.01, 0.05, 0.1, 0.5, 1.0],
+            "model__estimator__max_depth": [1, 2, 3, 5],
+            "model__estimator__min_samples_leaf": [1, 2, 5, 10],
+            "model__replacement": [False, True],
         }
     raise ValueError(f"Unknown model {model_name!r}; choose from {MODEL_NAMES}")
 

@@ -3,6 +3,8 @@
 ### Experiment results
 experiments/
 artifacts/
+report/
+
 ### Data ###
 *.csv
 *.dat
@@ -16,7 +18,7 @@ artifacts/
 *.tax2010
 *.vcf
 *.xml
-
+report/commands
 ### JupyterNotebooks ###
 # gitignore template for Jupyter Notebooks
 # website: http://jupyter.org/

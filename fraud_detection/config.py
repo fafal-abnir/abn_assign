@@ -4,7 +4,14 @@ from pathlib import Path
 from typing import Literal
 
 
-ModelName = Literal["xgboost", "random_forest", "catboost", "lightgbm"]
+ModelName = Literal[
+    "xgboost",
+    "random_forest",
+    "catboost",
+    "lightgbm",
+    "easyensemble",
+    "rusboost",
+]
 SamplingStrategy = Literal["none", "random_under", "random_over", "smote"]
 FeatureStrategy = Literal["base", "time", "geo", "behavioral", "all"]
 MODEL_NAMES: tuple[ModelName, ...] = (
@@ -12,7 +19,11 @@ MODEL_NAMES: tuple[ModelName, ...] = (
     "random_forest",
     "catboost",
     "lightgbm",
+    "easyensemble",
+    "rusboost",
 )
+
+INTERNAL_SAMPLING_MODELS: tuple[ModelName, ...] = ("easyensemble", "rusboost")
 SAMPLING_STRATEGIES: tuple[SamplingStrategy, ...] = (
     "none",
     "random_under",
@@ -62,7 +73,6 @@ BEHAVIORAL_NUMERIC_COLUMNS = (
 
 
 def feature_columns(strategy: FeatureStrategy) -> tuple[tuple[str, ...], tuple[str, ...]]:
-    """Return categorical and numeric columns for an experiment strategy."""
     groups = {
         "base": (),
         "time": TIME_NUMERIC_COLUMNS,
@@ -77,8 +87,6 @@ def feature_columns(strategy: FeatureStrategy) -> tuple[tuple[str, ...], tuple[s
 
 @dataclass(frozen=True)
 class TrainingConfig:
-    """All user-controlled settings for one reproducible training run."""
-
     model_name: ModelName
     data_dir: Path
     output_dir: Path = Path("experiments")
@@ -87,7 +95,7 @@ class TrainingConfig:
     shap: bool = False
     feature_importance: bool = False
     validation_fraction: float = 0.2
-    n_iter: int = 12
+    n_iter: int = 10
     random_state: int = 42
 
     def validate(self) -> None:
@@ -95,6 +103,14 @@ class TrainingConfig:
             raise ValueError(f"Unknown model {self.model_name!r}; choose from {MODEL_NAMES}")
         if self.sampling_strategy not in SAMPLING_STRATEGIES:
             raise ValueError(f"Unknown sampling strategy {self.sampling_strategy!r}")
+        if (
+            self.model_name in INTERNAL_SAMPLING_MODELS
+            and self.sampling_strategy != "none"
+        ):
+            raise ValueError(
+                f"{self.model_name} performs under-sampling internally; "
+                "use sampling_strategy='none'."
+            )
         if self.feature_strategy not in FEATURE_STRATEGIES:
             raise ValueError(f"Unknown feature strategy {self.feature_strategy!r}")
         if not 0 < self.validation_fraction < 1:
