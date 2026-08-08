@@ -3,7 +3,6 @@
 ### Experiment results
 experiments/
 artifacts/
-report/
 
 ### Data ###
 *.csv
